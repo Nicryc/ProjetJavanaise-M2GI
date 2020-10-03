@@ -9,8 +9,11 @@
 
 package jvn;
 
+import java.rmi.Naming;
+import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 import java.io.Serializable;
+//import java.net.InetAddress;
 
 
 public class JvnCoordImpl 	
@@ -29,6 +32,9 @@ public class JvnCoordImpl
   **/
 	private JvnCoordImpl() throws Exception {
 		// to be completed
+		LocateRegistry.createRegistry(1099);
+		Naming.rebind("rmi://localhost:1099/coord", this);
+		System.out.println("Coordinateur enregistré. Prêt." + this.toString());
 	}
 
   /**

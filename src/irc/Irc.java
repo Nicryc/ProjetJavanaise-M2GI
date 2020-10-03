@@ -27,8 +27,7 @@ public class Irc {
   * create a JVN object nammed IRC for representing the Chat application
   **/
 	public static void main(String argv[]) {
-	   try {
-		   
+	   try {   
 		// initialize JVN
 		JvnServerImpl js = JvnServerImpl.jvnGetServer();
 		

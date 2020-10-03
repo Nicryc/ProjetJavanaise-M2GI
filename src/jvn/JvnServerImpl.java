@@ -13,6 +13,7 @@ import java.rmi.Naming;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 import java.io.*;
+//import java.net.InetAddress;
 
 
 
@@ -27,7 +28,7 @@ public class JvnServerImpl
 	// A JVN server is managed as a singleton 
 	private static JvnServerImpl js = null;
 	
-	private static JvnRemoteCoord jsCoord = null;
+	private static JvnRemoteCoord jCoord = null;
 	
 	private HashMap<Integer, JvnObject> jvnObjects;
 
@@ -38,15 +39,18 @@ public class JvnServerImpl
 	private JvnServerImpl() throws Exception {
 		super();
 		// to be completed
+		String url = "rmi://localhost:1099/coord";
+		jCoord = (JvnRemoteCoord) Naming.lookup(url);
 		this.jvnObjects = new HashMap<Integer, JvnObject>();
-		while (!connectToCoord()) {
-			System.err.println("Perte de la connexion. Tentatiove de reconnexion …");
+	    System.out.println("Enregistrement de l'objet avec l'url : " + url);
+		while (!connectionToCoord(url)) {
+			System.err.println("Perte de la connexion. Tentative de reconnexion …");
 		}
 	}
 	
-	private Boolean connectToCoord() {
+	private Boolean connectionToCoord(String url) {
 		try {
-			jsCoord = (JvnRemoteCoord) Naming.lookup("rmi://localhost:2049/refcoord");
+			jCoord = (JvnRemoteCoord) Naming.lookup(url);
 			return true;
 		} catch (Exception e) {
 			return false;
