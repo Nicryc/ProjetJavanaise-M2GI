@@ -24,7 +24,9 @@ public class JvnCoordImpl
   /**
 	 * 
 	 */
-	private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
+  
+  private int id;
 
 /**
   * Default constructor
@@ -45,7 +47,7 @@ public class JvnCoordImpl
   public int jvnGetObjectId()
   throws java.rmi.RemoteException,jvn.JvnException {
     // to be completed 
-    return 0;
+    return id++;
   }
   
   /**
@@ -59,6 +61,8 @@ public class JvnCoordImpl
   public void jvnRegisterObject(String jon, JvnObject jo, JvnRemoteServer js)
   throws java.rmi.RemoteException,jvn.JvnException{
     // to be completed 
+
+    
   }
   
   /**
@@ -108,6 +112,15 @@ public class JvnCoordImpl
 	 throws java.rmi.RemoteException, JvnException {
 	 // to be completed
     }
+
+    public static void main(String[] args) {
+      try {
+        new JvnCoordImpl();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+
 }
 
  

@@ -10,6 +10,7 @@
 package jvn;
 
 import java.rmi.Naming;
+import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 import java.io.*;
@@ -42,10 +43,10 @@ public class JvnServerImpl
 		String url = "rmi://localhost:1099/coord";
 		jCoord = (JvnRemoteCoord) Naming.lookup(url);
 		this.jvnObjects = new HashMap<Integer, JvnObject>();
-	    System.out.println("Enregistrement de l'objet avec l'url : " + url);
 		while (!connectionToCoord(url)) {
 			System.err.println("Perte de la connexion. Tentative de reconnexion …");
 		}
+		System.out.println("Enregistrement de l'objet avec l'url : " + url);
 	}
 	
 	private Boolean connectionToCoord(String url) {
@@ -112,8 +113,16 @@ public class JvnServerImpl
 	**/
 	public  JvnObject jvnLookupObject(String jon)
 	throws jvn.JvnException {
-    // to be completed 
-		return null;
+	// to be completed 
+		JvnObject obj = null ;
+		try {
+			obj = jCoord.jvnLookupObject(jon, this);
+
+		} catch (RemoteException e) {
+			System.err.println("Erreur : " + e);
+		}
+
+		return obj;
 	}	
 	
 	/**
@@ -124,9 +133,12 @@ public class JvnServerImpl
 	**/
    public Serializable jvnLockRead(int joi)
 	 throws JvnException {
-		// to be completed 
-		return null;
-
+		try {
+			return jCoord.jvnLockRead(joi, this);
+		} catch (RemoteException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}	
 	/**
 	* Get a Write lock on a JVN object 
