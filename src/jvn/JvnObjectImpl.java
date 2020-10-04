@@ -1,6 +1,7 @@
 package jvn;
 
 import java.io.Serializable;
+import java.lang.reflect.Constructor;
 
 public class JvnObjectImpl implements JvnObject {
 
@@ -22,6 +23,12 @@ public class JvnObjectImpl implements JvnObject {
     private int id = 0;
     private Serializable obj = null;
 
+
+    public JvnObjectImpl(Serializable o, int joi) {
+        super();
+        obj = o;
+		id = joi;
+    }
 
     @Override
 	public void setObject(Serializable obj) {
