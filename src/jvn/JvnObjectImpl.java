@@ -22,6 +22,17 @@ public class JvnObjectImpl implements JvnObject {
     private int id = 0;
     private Serializable obj = null;
 
+
+    @Override
+	public void setObject(Serializable obj) {
+		this.obj = obj;
+    }
+    
+    @Override
+	public Serializable getObject() throws JvnException {
+		return this.obj;
+	}
+
     @Override
     public void jvnLockRead() throws JvnException {
         // TODO Auto-generated method stub
