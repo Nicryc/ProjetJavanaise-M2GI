@@ -46,7 +46,7 @@ public class JvnObjectImpl implements JvnObject {
 
         if (this.lockState == LOCK_STATES.NL) {
             JvnServerImpl js = JvnServerImpl.jvnGetServer();
-            this.lockState = (LOCK_STATES) js.jvnLockRead(id);
+            setObject(js.jvnLockWrite(this.jvnGetObjectId()));
             this.lockState = LOCK_STATES.R;
         } else {
             throw new JvnException("Read lock impossible");
@@ -60,7 +60,7 @@ public class JvnObjectImpl implements JvnObject {
 
         if (this.lockState == LOCK_STATES.NL) {
             JvnServerImpl js = JvnServerImpl.jvnGetServer();
-            this.lockState = (LOCK_STATES) js.jvnLockRead(id);
+            setObject(js.jvnLockWrite(this.jvnGetObjectId()));
             this.lockState = LOCK_STATES.W;
         } else {
             throw new JvnException("Write lock impossible");
@@ -71,7 +71,7 @@ public class JvnObjectImpl implements JvnObject {
     @Override
     public void jvnUnLock() throws JvnException {
         // TODO Auto-generated method stub
-        this.lockState = LOCK_STATES.NL;
+        lockState = LOCK_STATES.NL;
     }
 
     @Override
@@ -89,19 +89,21 @@ public class JvnObjectImpl implements JvnObject {
     @Override
     public void jvnInvalidateReader() throws JvnException {
         // TODO Auto-generated method stub
-
+        lockState = LOCK_STATES.NL ;
     }
 
     @Override
     public Serializable jvnInvalidateWriter() throws JvnException {
         // TODO Auto-generated method stub
-        return null;
+        lockState = LOCK_STATES.NL ;
+        return obj;
     }
 
     @Override
     public Serializable jvnInvalidateWriterForReader() throws JvnException {
         // TODO Auto-generated method stub
-        return null;
+        lockState = LOCK_STATES.R ;
+        return obj;
     }
     
 }
