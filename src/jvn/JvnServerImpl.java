@@ -138,11 +138,15 @@ public class JvnServerImpl
 	throws jvn.JvnException {
 	// to be completed 
 		JvnObject obj = null ;
-		try {
-			obj = jCoord.jvnLookupObject(jon, this);
-			jvnObjects.put(obj.jvnGetObjectId(), obj);
-		} catch (RemoteException e) {
-			System.err.println("Erreur : " + e);
+		if(jCoord != null) {
+			try {
+				obj = jCoord.jvnLookupObject(jon, this);
+				jvnObjects.put(obj.jvnGetObjectId(), obj);
+			} catch (RemoteException e) {
+				System.err.println("Erreur : " + e);
+			}
+		} else {
+			System.err.println("Erreur : le coordinateur est nul.");
 		}
 
 		return obj;

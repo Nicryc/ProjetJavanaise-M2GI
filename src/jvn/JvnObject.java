@@ -9,6 +9,8 @@ package jvn;
 
 import java.io.*;
 
+import jvn.JvnObjectImpl.LOCK_STATES;
+
 /**
  * Interface of a JVN object. 
  * A JVN object is used to acquire read/write locks to access a given shared object
@@ -80,5 +82,10 @@ public interface JvnObject extends Serializable {
 	* @throws JvnException
 	**/
    public Serializable jvnInvalidateWriterForReader()
-	 throws jvn.JvnException;	
+	 throws jvn.JvnException;
+
+
+	public void setState(LOCK_STATES lockState);
+
+	/*public void free();*/	
 }

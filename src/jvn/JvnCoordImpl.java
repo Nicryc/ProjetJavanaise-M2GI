@@ -15,8 +15,12 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
 import java.io.Serializable;
 //import java.net.InetAddress;
+
+import jvn.JvnObjectImpl.LOCK_STATES;
+
 
 
 public class JvnCoordImpl 	
@@ -36,23 +40,24 @@ public class JvnCoordImpl
   private HashMap<Integer, List<JvnRemoteServer>> jvnReadServers; //Stockage des serveurs bloqués en lecture
   private static JvnRemoteCoord jc = null;
 
+
 /**
   * Default constructor
   * @throws JvnException
   **/
 	private JvnCoordImpl() throws Exception {
     // to be completed
-    this.id = 0;
-    this.jvnObjects = new HashMap<String, JvnObject>();
+		this.id = 0;
+    	this.jvnObjects = new HashMap<String, JvnObject>();
 		this.jvnIdsNames = new HashMap<Integer, String>();
 		this.jvnWriteServers = new HashMap<Integer, JvnRemoteServer>();
 		this.jvnReadServers = new HashMap<Integer, List<JvnRemoteServer>>();
 
-    /*
+    
     LocateRegistry.createRegistry(1099);
 		Naming.rebind("rmi://localhost:1099/coord", this);
     System.out.println("Coordinateur enregistré. Prêt." + this.toString());
-    */
+    
   }
   
   /**
@@ -96,7 +101,7 @@ public class JvnCoordImpl
   throws java.rmi.RemoteException,jvn.JvnException{
     // to be completed 
     this.jvnObjects.put(jon, jo);
-		this.jvnIdsNames.put(jo.jvnGetObjectId(), jon);
+	this.jvnIdsNames.put(jo.jvnGetObjectId(), jon);
     this.jvnWriteServers.put(jo.jvnGetObjectId(), js);
     this.jvnReadServers.put(jo.jvnGetObjectId(), new ArrayList<JvnRemoteServer>());
     
@@ -112,13 +117,29 @@ public class JvnCoordImpl
   throws java.rmi.RemoteException,jvn.JvnException{
     // to be completed 
     //TODO
-
     JvnObject jvnObject = jvnObjects.get(jon);
-    if (jvnObject != null) {
+    int id = jvnObject.jvnGetObjectId();
+
+    /*if (jvnObject != null) {
+      jvnObject.free();
       return jvnObject;
     } else {
+      System.out.println("jvnObject nul.");
       return null;
+    }*/
+
+    LOCK_STATES state = LOCK_STATES.NL;
+    if(jvnWriteServers != null && jvnWriteServers.containsKey(id) && jvnWriteServers.get(id) != null) {
+      state = LOCK_STATES.W;
     }
+    else if(jvnReadServers != null && jvnReadServers.containsKey(id) && jvnReadServers.get(id).size() > 0) {
+      state = LOCK_STATES.R;
+    }
+    
+    JvnObject jo = new JvnObjectImpl(jvnObjects.get(jon).getObject(), id);
+    jo.setState(state);
+    return jo;
+
   }
   
   /**

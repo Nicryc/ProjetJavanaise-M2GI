@@ -10,7 +10,7 @@ public class JvnObjectImpl implements JvnObject {
      */
     private static final long serialVersionUID = 1L;
 
-    private enum LOCK_STATES {
+    public enum LOCK_STATES {
         NL, // No Lock
         R,  // Read
         W,  // Write
@@ -105,5 +105,16 @@ public class JvnObjectImpl implements JvnObject {
         lockState = LOCK_STATES.R ;
         return obj;
     }
-    
+
+    @Override
+    public void setState(LOCK_STATES lockState) {
+        this.lockState = lockState;
+    }
+
+    /*@Override
+    public void free() {
+        lockState = LOCK_STATES.NL;
+        return null;
+    }
+    */
 }
