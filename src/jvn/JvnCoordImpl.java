@@ -36,6 +36,11 @@ public class JvnCoordImpl
   private int id;
   private HashMap<String, JvnObject> jvnObjects; //Nom des objets JVN
   private HashMap<Integer, String> jvnIdsNames; //Lien id/nom des objets JVN
+  
+  //new way
+  private HashMap<String, Integer> jvnIdsFromNames; //Lien Nom/id des objets JVN;
+  private HashMap<Integer, JvnObject> jvnObjectsFromIds ; // objets JVN en fonction de leur id
+  
   private HashMap<Integer, JvnRemoteServer> jvnWriteServers; //Stockage des serveurs bloqués en écriture
   private HashMap<Integer, List<JvnRemoteServer>> jvnReadServers; //Stockage des serveurs bloqués en lecture
   private static JvnRemoteCoord jc = null;
@@ -52,11 +57,15 @@ public class JvnCoordImpl
 		this.jvnIdsNames = new HashMap<Integer, String>();
 		this.jvnWriteServers = new HashMap<Integer, JvnRemoteServer>();
 		this.jvnReadServers = new HashMap<Integer, List<JvnRemoteServer>>();
+		
+		//new way
+		this.jvnIdsFromNames = new HashMap<String, Integer>();
+		this.jvnObjectsFromIds = new HashMap<Integer, JvnObject>();
 
     
-    LocateRegistry.createRegistry(1099);
+	    LocateRegistry.createRegistry(1099);
 		Naming.rebind("rmi://localhost:1099/coord", this);
-    System.out.println("Coordinateur enregistré. Prêt." + this.toString());
+	    System.out.println("Coordinateur enregistré. Prêt." + this.toString());
     
   }
   
@@ -102,6 +111,10 @@ public class JvnCoordImpl
     // to be completed 
     this.jvnObjects.put(jon, jo);
 	this.jvnIdsNames.put(jo.jvnGetObjectId(), jon);
+	
+	jvnIdsFromNames.put(jon, jo.jvnGetObjectId());
+	jvnObjectsFromIds.put(jo.jvnGetObjectId(), jo);
+	
     this.jvnWriteServers.put(jo.jvnGetObjectId(), js);
     this.jvnReadServers.put(jo.jvnGetObjectId(), new ArrayList<JvnRemoteServer>());
     
@@ -119,15 +132,26 @@ public class JvnCoordImpl
     //TODO
     JvnObject jvnObject = jvnObjects.get(jon);
     int id = jvnObject.jvnGetObjectId();
+    
+    //new way
+    /*Integer id  = jvnIdsFromNames.get(jon);
+    
+    if (id != null) {
+    	return jvnObjectsFromIds.get(id);
+    }
+    
+    return null;*/
+    
 
-    /*if (jvnObject != null) {
+    if (jvnObject != null) {
       jvnObject.free();
       return jvnObject;
     } else {
       System.out.println("jvnObject nul.");
       return null;
-    }*/
+    }
 
+    /*
     LOCK_STATES state = LOCK_STATES.NL;
     if(jvnWriteServers != null && jvnWriteServers.containsKey(id) && jvnWriteServers.get(id) != null) {
       state = LOCK_STATES.W;
@@ -135,10 +159,11 @@ public class JvnCoordImpl
     else if(jvnReadServers != null && jvnReadServers.containsKey(id) && jvnReadServers.get(id).size() > 0) {
       state = LOCK_STATES.R;
     }
-    
+    */
     JvnObject jo = new JvnObjectImpl(jvnObjects.get(jon).getObject(), id);
     jo.setState(state);
     return jo;
+    
 
   }
   

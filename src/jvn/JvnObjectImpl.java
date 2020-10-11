@@ -42,7 +42,7 @@ public class JvnObjectImpl implements JvnObject {
 
     @Override
     public void jvnLockRead() throws JvnException {
-        // TODO Auto-generated method stub
+        // TODO Faire les autres cas
 
         if (this.lockState == LOCK_STATES.NL) {
             JvnServerImpl js = JvnServerImpl.jvnGetServer();
@@ -56,7 +56,7 @@ public class JvnObjectImpl implements JvnObject {
 
     @Override
     public void jvnLockWrite() throws JvnException {
-        // TODO Auto-generated method stub
+        // TODO Faire les autres cas
 
         if (this.lockState == LOCK_STATES.NL) {
             JvnServerImpl js = JvnServerImpl.jvnGetServer();
@@ -70,7 +70,7 @@ public class JvnObjectImpl implements JvnObject {
 
     @Override
     public void jvnUnLock() throws JvnException {
-        // TODO Auto-generated method stub
+        // TODO Faire les autres cas
         lockState = LOCK_STATES.NL;
     }
 
