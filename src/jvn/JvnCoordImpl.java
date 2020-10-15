@@ -9,6 +9,7 @@
 
 package jvn;
 
+import java.rmi.ConnectException;
 import java.rmi.Naming;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
@@ -34,10 +35,9 @@ public class JvnCoordImpl
   private static final long serialVersionUID = 1L;
   
   private int id;
-  private HashMap<String, JvnObject> jvnObjects; //Nom des objets JVN
-  private HashMap<Integer, String> jvnIdsNames; //Lien id/nom des objets JVN
+  /*private HashMap<String, JvnObject> jvnObjects; //Nom des objets JVN
+  private HashMap<Integer, String> jvnIdsNames; //Lien id/nom des objets JVN*/
   
-  //new way
   private HashMap<String, Integer> jvnIdsFromNames; //Lien Nom/id des objets JVN;
   private HashMap<Integer, JvnObject> jvnObjectsFromIds ; // objets JVN en fonction de leur id
   
@@ -53,12 +53,10 @@ public class JvnCoordImpl
 	private JvnCoordImpl() throws Exception {
     // to be completed
 		this.id = 0;
-    	this.jvnObjects = new HashMap<String, JvnObject>();
-		this.jvnIdsNames = new HashMap<Integer, String>();
+    	/*this.jvnObjects = new HashMap<String, JvnObject>();
+		this.jvnIdsNames = new HashMap<Integer, String>();*/
 		this.jvnWriteServers = new HashMap<Integer, JvnRemoteServer>();
 		this.jvnReadServers = new HashMap<Integer, List<JvnRemoteServer>>();
-		
-		//new way
 		this.jvnIdsFromNames = new HashMap<String, Integer>();
 		this.jvnObjectsFromIds = new HashMap<Integer, JvnObject>();
 
@@ -109,8 +107,8 @@ public class JvnCoordImpl
   public void jvnRegisterObject(String jon, JvnObject jo, JvnRemoteServer js)
   throws java.rmi.RemoteException,jvn.JvnException{
     // to be completed 
-    this.jvnObjects.put(jon, jo);
-	this.jvnIdsNames.put(jo.jvnGetObjectId(), jon);
+    /*this.jvnObjects.put(jon, jo);
+	this.jvnIdsNames.put(jo.jvnGetObjectId(), jon);*/
 	
 	jvnIdsFromNames.put(jon, jo.jvnGetObjectId());
 	jvnObjectsFromIds.put(jo.jvnGetObjectId(), jo);
@@ -130,9 +128,15 @@ public class JvnCoordImpl
   throws java.rmi.RemoteException,jvn.JvnException{
     // to be completed 
     //TODO
-    JvnObject jvnObject = jvnObjects.get(jon);
-    int id = jvnObject.jvnGetObjectId();
-    
+	  System.out.println("JvnCoordLookupObject");
+	//int id = jvnIdsFromNames.get(jon);
+	System.out.println("JvnCoordLookupObject2");
+	JvnObject jvnObject = jvnObjectsFromIds.get(id);
+	if (true)
+		return null;
+    //JvnObject jvnObject = jvnObjects.get(jon);
+    //int id = jvnObject.jvnGetObjectId();
+
     //new way
     /*Integer id  = jvnIdsFromNames.get(jon);
     
@@ -141,29 +145,23 @@ public class JvnCoordImpl
     }
     
     return null;*/
-    
+ 
 
     if (jvnObject != null) {
-      jvnObject.free();
-      return jvnObject;
+    	LOCK_STATES state = LOCK_STATES.NL;
+        if(jvnWriteServers != null && jvnWriteServers.containsKey(id) && jvnWriteServers.get(id) != null) {
+          state = LOCK_STATES.W;
+        }
+        else if(jvnReadServers != null && jvnReadServers.containsKey(id) && jvnReadServers.get(id).size() > 0) {
+          state = LOCK_STATES.R;
+        }
+        
+        jvnObject = new JvnObjectImpl(jvnObjectsFromIds.get(id), id, state);
+        return jvnObject;
     } else {
       System.out.println("jvnObject nul.");
       return null;
-    }
-
-    /*
-    LOCK_STATES state = LOCK_STATES.NL;
-    if(jvnWriteServers != null && jvnWriteServers.containsKey(id) && jvnWriteServers.get(id) != null) {
-      state = LOCK_STATES.W;
-    }
-    else if(jvnReadServers != null && jvnReadServers.containsKey(id) && jvnReadServers.get(id).size() > 0) {
-      state = LOCK_STATES.R;
-    }
-    */
-    JvnObject jo = new JvnObjectImpl(jvnObjects.get(jon).getObject(), id);
-    jo.setState(state);
-    return jo;
-    
+    }  
 
   }
   
@@ -179,21 +177,49 @@ public class JvnCoordImpl
     // to be completed
     //TODO
 
-    Serializable joState;
+	   /*Serializable object = jvnObjectsFromIds.get(joi).jvnGetSharedObject(); //jvnReferences.get(joi)).jvnGetObjectState();
+
+	   if (jvnWriteServers.containsKey(joi) && !jvnWriteServers.get(joi).equals(js)) {
+		   try {
+			   System.out.println("Le serveur Write a un verrou write sur l'objet " + joi);
+			   object = jvnWriteServers.get(joi).jvnInvalidateWriterForReader(joi);
+			   jvnWriteServers.remove(joi);
+			   jvnObjectsFromIds.get(joi).setObject(object);
+		   } catch (ConnectException e) {
+			   System.err.println(e.getMessage());
+			   jvnWriteServers.remove(joi);
+
+			   jvnObjectsFromIds.get(joi).setObject(object);
+		   }
+	   }
+	   jvnReadServers.get(joi).add(js);
+	   
+	   return object;*/
+	   
+	   
     List<JvnRemoteServer> jvnRemoteServers = jvnReadServers.get(joi);
 	
     if(jvnRemoteServers == null) {
       jvnRemoteServers = new ArrayList<JvnRemoteServer>();
     }
-    joState = jvnWriteServers.get(joi).jvnInvalidateWriterForReader(joi);
-    jvnWriteServers.remove(joi);
-    jvnObjects.get(jvnIdsNames.get(joi)).setObject(joState);
-    if(!jvnRemoteServers.contains(js)) {
-			jvnRemoteServers.add(js);
-		}
-		jvnReadServers.put(joi, jvnRemoteServers);
+    
+    if (jvnWriteServers.get(joi) != null && jvnWriteServers.size() > 0) {
+    	JvnObject jo = (JvnObject) jvnWriteServers.get(joi).jvnInvalidateWriter(joi);
+    	jvnObjectsFromIds.put(joi, jo);
+    	
+    	if(!jvnRemoteServers.contains(js)) {
+    		jvnRemoteServers.add(js);
+    	}
+    	
+    	jvnReadServers.put(joi, jvnRemoteServers);
+    } else {
+    	if (!jvnRemoteServers.contains(js)) {
+    		jvnRemoteServers.add(js);
+    	}
+    	jvnReadServers.put(joi, jvnRemoteServers);
+    }
 
-    return joState;
+    return jvnObjectsFromIds.get(joi);
    }
 
   /**
@@ -211,7 +237,8 @@ public class JvnCoordImpl
 
     joState = this.jvnWriteServers.get(joi).jvnInvalidateWriter(joi);
 		jvnWriteServers.remove(joi);
-		jvnObjects.get(jvnIdsNames.get(joi)).setObject(joState);
+		jvnObjectsFromIds.get(joi).setObject(joState);
+		//jvnObjects.get(jvnIdsNames.get(joi)).setObject(joState);
     jvnWriteServers.put(joi, js);
     
     List<JvnRemoteServer> jvnRemoteServers = jvnReadServers.get(joi);
@@ -223,10 +250,13 @@ public class JvnCoordImpl
 			this.jvnReadServers.remove(joi);
 		}
 		
-		if(jvnIdsNames.get(joi) == null) {
+		if(jvnObjectsFromIds.get(joi) == null) {
+		//if(jvnIdsNames.get(joi) == null) {
 			throw new JvnException("Demande de verrou impossible.");
     }
-		joState = jvnObjects.get(jvnIdsNames.get(joi)).getObject();
+		
+		joState = jvnObjectsFromIds.get(joi).getObject();
+		//joState = jvnObjects.get(jvnIdsNames.get(joi)).getObject();
 		this.jvnWriteServers.put(joi, js);
 
     return joState;

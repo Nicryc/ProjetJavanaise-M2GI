@@ -28,9 +28,7 @@ public class JvnServerImpl
 	private static final long serialVersionUID = 1L;
 	// A JVN server is managed as a singleton 
 	private static JvnServerImpl js = null;
-	
-	private static JvnRemoteCoord jCoord = null;
-	
+	private JvnRemoteCoord jCoord = null;
 	private HashMap<Integer, JvnObject> jvnObjects;
 
   /**
@@ -39,9 +37,8 @@ public class JvnServerImpl
   **/
 	private JvnServerImpl() throws Exception {
 		super();
-		// to be completed
 		String url = "rmi://localhost:1099/coord";
-		jCoord = (JvnRemoteCoord) Naming.lookup(url);
+		this.jCoord = (JvnRemoteCoord) Naming.lookup(url);
 		this.jvnObjects = new HashMap<Integer, JvnObject>();
 		while (!connectionToCoord(url)) {
 			System.err.println("Perte de la connexion. Tentative de reconnexion …");
@@ -51,7 +48,7 @@ public class JvnServerImpl
 	
 	private Boolean connectionToCoord(String url) {
 		try {
-			jCoord = (JvnRemoteCoord) Naming.lookup(url);
+			this.jCoord = (JvnRemoteCoord) Naming.lookup(url);
 			return true;
 		} catch (Exception e) {
 			return false;
@@ -81,11 +78,12 @@ public class JvnServerImpl
 	**/
 	public  void jvnTerminate()
 	throws jvn.JvnException {
-	// to be completed 
-		try {
-			jCoord.jvnTerminate(this);
-		} catch(RemoteException e) {
-			System.err.println("Erreur : " + e.getMessage());
+		if (jCoord != null) {
+			try {
+				jCoord.jvnTerminate(this);
+			} catch(RemoteException e) {
+				System.err.println("Erreur : " + e.getMessage());
+			}
 		}
 	} 
 	
@@ -96,17 +94,17 @@ public class JvnServerImpl
 	**/
 	public  JvnObject jvnCreateObject(Serializable o)
 	throws jvn.JvnException { 
-		// to be completed 
+		int id = 0;
+		JvnObject obj = null;
 
-		int id ;
-		JvnObject obj;
-
-		try {
-			id = jCoord.jvnGetObjectId();
-			obj = new JvnObjectImpl(o, id);
-			return obj; 
-		} catch (RemoteException e) {
-			System.err.println("Erreur : " + e.getMessage());
+		if (jCoord != null) {
+			try {
+				id = jCoord.jvnGetObjectId();
+				obj = new JvnObjectImpl(o, id);
+				return obj; 
+			} catch (RemoteException e) {
+				System.err.println("Erreur : " + e.getMessage());
+			}
 		}
 		return null;
 	}
@@ -120,11 +118,13 @@ public class JvnServerImpl
 	public  void jvnRegisterObject(String jon, JvnObject jo)
 	throws jvn.JvnException {
 		// to be completed 
-		try {
-			jCoord.jvnRegisterObject(jon, jo, this);
-			jvnObjects.put(jo.jvnGetObjectId(), jo);
-		} catch (RemoteException e) {
-			System.err.println("Erreur : " + e.getMessage());
+		if (jCoord != null) {
+			try {
+				jCoord.jvnRegisterObject(jon, jo, this);
+				jvnObjects.put(jo.jvnGetObjectId(), jo);
+			} catch (RemoteException e) {
+				System.err.println("Erreur : " + e.getMessage());
+			}
 		}
 	}
 	
@@ -141,7 +141,8 @@ public class JvnServerImpl
 		if(jCoord != null) {
 			try {
 				obj = jCoord.jvnLookupObject(jon, this);
-				jvnObjects.put(obj.jvnGetObjectId(), obj);
+				if (obj != null)
+					jvnObjects.put(obj.jvnGetObjectId(), obj);
 			} catch (RemoteException e) {
 				System.err.println("Erreur : " + e);
 			}
@@ -160,12 +161,15 @@ public class JvnServerImpl
 	**/
    public Serializable jvnLockRead(int joi)
 	 throws JvnException {
-		try {
-			return jCoord.jvnLockRead(joi, this);
-		} catch (RemoteException e) {
-			System.err.println("Erreur : " + e);
-		}
-		return null;
+	   
+	   if (jCoord != null) {
+		   try {
+			   return jCoord.jvnLockRead(joi, this);
+		   } catch (RemoteException e) {
+			   System.err.println("Erreur : " + e);
+		   }
+	   }
+	   return null;
 	}	
 	/**
 	* Get a Write lock on a JVN object 
@@ -175,12 +179,14 @@ public class JvnServerImpl
 	**/
    public Serializable jvnLockWrite(int joi)
 	 throws JvnException {
-		// to be completed 
-		try {
-			return jCoord.jvnLockWrite(joi, this);
-		} catch (RemoteException e) {
-			System.err.println("Erreur : " + e);
-		}
+
+	   if (jCoord != null) {
+		   try {
+			   return jCoord.jvnLockWrite(joi, this);
+		   } catch (RemoteException e) {
+			   System.err.println("Erreur : " + e);
+		   }
+	   }
 		return null;
 	}	
 
@@ -207,9 +213,13 @@ public class JvnServerImpl
   public Serializable jvnInvalidateWriter(int joi)
 	throws java.rmi.RemoteException,jvn.JvnException { 
 		// to be completed 
-		Serializable obj = jvnObjects.get(joi).jvnInvalidateWriter();
-		jvnObjects.get(joi).setObject(obj);
-		return obj;
+		//Serializable obj = 
+	  if (jvnObjects != null && jvnObjects.containsKey(joi))
+		  return jvnObjects.get(joi).jvnInvalidateWriter();
+	  else
+		  throw new  JvnException("Impossible de InvalidateWriter");
+		//jvnObjects.get(joi).setObject(obj);
+		//return obj;
 	};
 	
 	/**
@@ -221,9 +231,13 @@ public class JvnServerImpl
    public Serializable jvnInvalidateWriterForReader(int joi)
 	 throws java.rmi.RemoteException,jvn.JvnException { 
 		// to be completed 
-		Serializable obj = jvnObjects.get(joi).jvnInvalidateWriterForReader();
-		jvnObjects.get(joi).setObject(obj);
-		return obj;
+		//Serializable obj = jvnObjects.get(joi).jvnInvalidateWriterForReader();
+	   if (jvnObjects != null && jvnObjects.containsKey(joi))
+		   return jvnObjects.get(joi).jvnInvalidateWriterForReader();
+	   else
+		   throw new  JvnException("Impossible de InvalidateWriterForReader");
+		//jvnObjects.get(joi).setObject(obj);
+		//return obj;
 	 };
 
 }
