@@ -20,9 +20,11 @@ public interface JvnObject extends Serializable {
 	/* A JvnObject should be serializable in order to be able to transfer 
        a reference to a JVN object remotely */
 
-	public JvnObject setObject(Serializable obj) throws JvnException;
+	public JvnObject setObject(Serializable obj) 
+	throws JvnException;
 
-	public Serializable getObject() throws JvnException;
+	public Serializable getObject() 
+	throws JvnException;
 
 	/**
 	* Get a Read lock on the shared object 
@@ -60,6 +62,8 @@ public interface JvnObject extends Serializable {
 	public Serializable jvnGetSharedObject()
 	throws jvn.JvnException; 
 	
+	public JvnObject jvnSetSharedObject(Serializable obj) 
+	throws JvnException;
 	
 	/**
 	* Invalidate the Read lock of the JVN object 
@@ -87,5 +91,4 @@ public interface JvnObject extends Serializable {
 
 	public void setState(LOCK_STATES lockState);
 
-	/*public void free();*/	
 }

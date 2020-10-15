@@ -34,16 +34,16 @@ public class JvnCoordImpl
 	 */
   private static final long serialVersionUID = 1L;
   
-  private int id;
+  private int id = 0;
   /*private HashMap<String, JvnObject> jvnObjects; //Nom des objets JVN
   private HashMap<Integer, String> jvnIdsNames; //Lien id/nom des objets JVN*/
   
-  private HashMap<String, Integer> jvnIdsFromNames; //Lien Nom/id des objets JVN;
-  private HashMap<Integer, JvnObject> jvnObjectsFromIds ; // objets JVN en fonction de leur id
+  private HashMap<Integer, String> jvnNamesFromIds; //Lien id/nom des objets JVN;
+  private HashMap<String, JvnObject> jvnObjectsFromNames ; // objets JVN en fonction de leur nom
   
   private HashMap<Integer, JvnRemoteServer> jvnWriteServers; //Stockage des serveurs bloqués en écriture
   private HashMap<Integer, List<JvnRemoteServer>> jvnReadServers; //Stockage des serveurs bloqués en lecture
-  private static JvnRemoteCoord jc = null;
+  private static JvnCoordImpl jc = null;
 
 
 /**
@@ -51,20 +51,11 @@ public class JvnCoordImpl
   * @throws JvnException
   **/
 	private JvnCoordImpl() throws Exception {
-    // to be completed
-		this.id = 0;
-    	/*this.jvnObjects = new HashMap<String, JvnObject>();
-		this.jvnIdsNames = new HashMap<Integer, String>();*/
 		this.jvnWriteServers = new HashMap<Integer, JvnRemoteServer>();
 		this.jvnReadServers = new HashMap<Integer, List<JvnRemoteServer>>();
-		this.jvnIdsFromNames = new HashMap<String, Integer>();
-		this.jvnObjectsFromIds = new HashMap<Integer, JvnObject>();
-
-    
-	    LocateRegistry.createRegistry(1099);
-		Naming.rebind("rmi://localhost:1099/coord", this);
-	    System.out.println("Coordinateur enregistré. Prêt." + this.toString());
-    
+		this.jvnNamesFromIds = new HashMap<Integer, String>();
+		this.jvnObjectsFromNames = new HashMap<String, JvnObject>();
+	    //OK
   }
   
   /**
@@ -83,6 +74,7 @@ public class JvnCoordImpl
 			}
 		}
 		return jc;
+		//OK
 	}
 
   /**
@@ -92,8 +84,8 @@ public class JvnCoordImpl
   **/
   public int jvnGetObjectId()
   throws java.rmi.RemoteException,jvn.JvnException {
-    // to be completed 
     return this.id++;
+    //OK
   }
   
   /**
@@ -106,16 +98,13 @@ public class JvnCoordImpl
   **/
   public void jvnRegisterObject(String jon, JvnObject jo, JvnRemoteServer js)
   throws java.rmi.RemoteException,jvn.JvnException{
-    // to be completed 
-    /*this.jvnObjects.put(jon, jo);
-	this.jvnIdsNames.put(jo.jvnGetObjectId(), jon);*/
 	
-	jvnIdsFromNames.put(jon, jo.jvnGetObjectId());
-	jvnObjectsFromIds.put(jo.jvnGetObjectId(), jo);
+	jvnObjectsFromNames.put(jon, jo);
+	jvnNamesFromIds.put(jo.jvnGetObjectId(), jon);
 	
-    this.jvnWriteServers.put(jo.jvnGetObjectId(), js);
-    this.jvnReadServers.put(jo.jvnGetObjectId(), new ArrayList<JvnRemoteServer>());
-    
+    jvnWriteServers.put(jo.jvnGetObjectId(), js);
+    jvnReadServers.put(jo.jvnGetObjectId(), new ArrayList<JvnRemoteServer>());
+    //OK
   }
   
   /**
@@ -126,43 +115,9 @@ public class JvnCoordImpl
   **/
   public JvnObject jvnLookupObject(String jon, JvnRemoteServer js)
   throws java.rmi.RemoteException,jvn.JvnException{
-    // to be completed 
-    //TODO
-	  System.out.println("JvnCoordLookupObject");
-	//int id = jvnIdsFromNames.get(jon);
-	System.out.println("JvnCoordLookupObject2");
-	JvnObject jvnObject = jvnObjectsFromIds.get(id);
-	if (true)
-		return null;
-    //JvnObject jvnObject = jvnObjects.get(jon);
-    //int id = jvnObject.jvnGetObjectId();
-
-    //new way
-    /*Integer id  = jvnIdsFromNames.get(jon);
-    
-    if (id != null) {
-    	return jvnObjectsFromIds.get(id);
-    }
-    
-    return null;*/
- 
-
-    if (jvnObject != null) {
-    	LOCK_STATES state = LOCK_STATES.NL;
-        if(jvnWriteServers != null && jvnWriteServers.containsKey(id) && jvnWriteServers.get(id) != null) {
-          state = LOCK_STATES.W;
-        }
-        else if(jvnReadServers != null && jvnReadServers.containsKey(id) && jvnReadServers.get(id).size() > 0) {
-          state = LOCK_STATES.R;
-        }
-        
-        jvnObject = new JvnObjectImpl(jvnObjectsFromIds.get(id), id, state);
-        return jvnObject;
-    } else {
-      System.out.println("jvnObject nul.");
-      return null;
-    }  
-
+	System.out.println("JvnCoordImpl:jvnLookupObject return object : " + jon);
+	return jvnObjectsFromNames.get(jon);
+	//OK
   }
   
   /**
@@ -174,52 +129,33 @@ public class JvnCoordImpl
   **/
    public Serializable jvnLockRead(int joi, JvnRemoteServer js)
    throws java.rmi.RemoteException, JvnException{
-    // to be completed
-    //TODO
-
-	   /*Serializable object = jvnObjectsFromIds.get(joi).jvnGetSharedObject(); //jvnReferences.get(joi)).jvnGetObjectState();
+	   //TODO
+	   
+	   Serializable object = jvnObjectsFromNames.get(jvnNamesFromIds.get(joi)).jvnGetSharedObject();
 
 	   if (jvnWriteServers.containsKey(joi) && !jvnWriteServers.get(joi).equals(js)) {
-		   try {
-			   System.out.println("Le serveur Write a un verrou write sur l'objet " + joi);
-			   object = jvnWriteServers.get(joi).jvnInvalidateWriterForReader(joi);
-			   jvnWriteServers.remove(joi);
-			   jvnObjectsFromIds.get(joi).setObject(object);
-		   } catch (ConnectException e) {
-			   System.err.println(e.getMessage());
-			   jvnWriteServers.remove(joi);
+		   synchronized (this) {
+			   try {
+				   System.out.println("Write server has write lock on object " + joi);
+				   object = jvnWriteServers.get(joi).jvnInvalidateWriterForReader(joi);
+				   jvnWriteServers.remove(joi);
+				   jvnObjectsFromNames.get(jvnNamesFromIds.get(joi)).jvnSetSharedObject(object);
+			   } catch (ConnectException e) {
+				   System.err.println(e.getMessage());
+				   jvnWriteServers.remove(joi);
 
-			   jvnObjectsFromIds.get(joi).setObject(object);
+				   jvnObjectsFromNames.get(jvnNamesFromIds.get(joi)).jvnSetSharedObject(object);
+			   }
+				
 		   }
 	   }
-	   jvnReadServers.get(joi).add(js);
-	   
-	   return object;*/
-	   
-	   
-    List<JvnRemoteServer> jvnRemoteServers = jvnReadServers.get(joi);
-	
-    if(jvnRemoteServers == null) {
-      jvnRemoteServers = new ArrayList<JvnRemoteServer>();
-    }
-    
-    if (jvnWriteServers.get(joi) != null && jvnWriteServers.size() > 0) {
-    	JvnObject jo = (JvnObject) jvnWriteServers.get(joi).jvnInvalidateWriter(joi);
-    	jvnObjectsFromIds.put(joi, jo);
-    	
-    	if(!jvnRemoteServers.contains(js)) {
-    		jvnRemoteServers.add(js);
-    	}
-    	
-    	jvnReadServers.put(joi, jvnRemoteServers);
-    } else {
-    	if (!jvnRemoteServers.contains(js)) {
-    		jvnRemoteServers.add(js);
-    	}
-    	jvnReadServers.put(joi, jvnRemoteServers);
-    }
 
-    return jvnObjectsFromIds.get(joi);
+	   jvnReadServers.get(joi).add(js);
+
+	   System.out.println("==========================");
+	   System.out.println("");
+
+	   return object;
    }
 
   /**
@@ -231,35 +167,42 @@ public class JvnCoordImpl
   **/
    public Serializable jvnLockWrite(int joi, JvnRemoteServer js)
    throws java.rmi.RemoteException, JvnException{
-    // to be completed
     //TODO
-    Serializable joState;
-
-    joState = this.jvnWriteServers.get(joi).jvnInvalidateWriter(joi);
-		jvnWriteServers.remove(joi);
-		jvnObjectsFromIds.get(joi).setObject(joState);
-		//jvnObjects.get(jvnIdsNames.get(joi)).setObject(joState);
-    jvnWriteServers.put(joi, js);
     
-    List<JvnRemoteServer> jvnRemoteServers = jvnReadServers.get(joi);
-		if(jvnRemoteServers != null)
-		{
-			for(JvnRemoteServer jrs : jvnRemoteServers)
-				jrs.jvnInvalidateReader(joi);
-			
-			this.jvnReadServers.remove(joi);
-		}
-		
-		if(jvnObjectsFromIds.get(joi) == null) {
-		//if(jvnIdsNames.get(joi) == null) {
-			throw new JvnException("Demande de verrou impossible.");
-    }
-		
-		joState = jvnObjectsFromIds.get(joi).getObject();
-		//joState = jvnObjects.get(jvnIdsNames.get(joi)).getObject();
-		this.jvnWriteServers.put(joi, js);
+	   Serializable object = jvnObjectsFromNames.get(jvnNamesFromIds.get(joi)).jvnGetSharedObject();
 
-    return joState;
+	   if (jvnWriteServers.containsKey(joi) && jvnWriteServers.get(joi) != js) {
+		   synchronized (this) {
+			   try {
+				   System.out.println("JvnCoordImpl:jvnLockWrite jvnWriteServers containsKey joi : " + joi);
+				   object = jvnWriteServers.get(joi).jvnInvalidateWriter(joi);
+				   jvnObjectsFromNames.get(jvnNamesFromIds.get(joi)).jvnSetSharedObject(object);
+			   } catch (ConnectException e) {
+				   System.err.println(e.getMessage());
+				   jvnWriteServers.remove(joi);
+			   }
+		   }
+	   }
+
+	   for (int i = 0; i < jvnReadServers.get(joi).size(); i++) {
+		   if (!jvnReadServers.get(joi).get(i).equals(js)) {
+			   try {
+				   System.out.println("JvnCoordImpl:jvnLockWrite try to invalidateReader for joi : " + joi);
+				   jvnReadServers.get(joi).get(i).jvnInvalidateReader(joi);
+				   jvnReadServers.get(joi).remove(i);
+				   System.out.println("JvnCoordImpl:jvnLockWrite invalidateReader for joi : " + joi + " Ok");
+					
+			   } catch (ConnectException e) {
+				   jvnReadServers.get(joi).remove(i);
+			   }	
+		   }
+	   }
+
+	   jvnWriteServers.put(joi, js);
+	   System.out.println("==========================");
+	   System.out.println("");
+
+	   return object;
    }
 
 	/**
@@ -269,24 +212,22 @@ public class JvnCoordImpl
 	**/
     public void jvnTerminate(JvnRemoteServer js)
 	 throws java.rmi.RemoteException, JvnException {
-    // to be completed
-    for(List<JvnRemoteServer> jvnRemoteServers : jvnReadServers.values())
-		{
-			if(jvnRemoteServers.contains(js)) {
-        jvnRemoteServers.remove(js);
-      }
+    	//TODO
+    	
+    	for (int i = 0; i < jvnWriteServers.size(); i++) {
+    		if (jvnWriteServers.get(i).equals(js)) {
+				jvnWriteServers.remove(i);
+			}
 		}
-		jvnWriteServers.values().remove(js);
+
+		for (int i = 0; i < jvnReadServers.size(); i++) {
+			for (JvnRemoteServer jvns : jvnReadServers.get(i)) {
+				if (jvns.equals(js)) {
+					jvnReadServers.get(i).remove(js);
+				}
+			}
+		}
    }
-
-    public static void main(String[] args) {
-      try {
-        new JvnCoordImpl();
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-    }
-
 }
 
  
