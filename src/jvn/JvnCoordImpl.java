@@ -121,22 +121,19 @@ public class JvnCoordImpl
   **/
    public Serializable jvnLockRead(int joi, JvnRemoteServer js)
    throws java.rmi.RemoteException, JvnException{
-	   //TODO
-	   
-	   Serializable object = jvnObjectsFromNames.get(jvnNamesFromIds.get(joi)).jvnGetSharedObject();
+	   Serializable obj = jvnObjectsFromNames.get(jvnNamesFromIds.get(joi)).jvnGetSharedObject();
 
 	   if (jvnWriteServers.containsKey(joi) && !jvnWriteServers.get(joi).equals(js)) {
 		   synchronized (this) {
 			   try {
-				   object = jvnWriteServers.get(joi).jvnInvalidateWriterForReader(joi);
+				   obj = jvnWriteServers.get(joi).jvnInvalidateWriterForReader(joi);
 				   jvnWriteServers.remove(joi);
-				   jvnObjectsFromNames.get(jvnNamesFromIds.get(joi)).jvnSetSharedObject(object);
+				   jvnObjectsFromNames.get(jvnNamesFromIds.get(joi)).jvnSetSharedObject(obj);
 			   } catch (ConnectException e) {
 				   System.err.println("JvnCoordImpl : Impossile de LockRead + " + e.getMessage());
 				   jvnWriteServers.remove(joi);
-				   jvnObjectsFromNames.get(jvnNamesFromIds.get(joi)).jvnSetSharedObject(object);
-			   }
-				
+				   jvnObjectsFromNames.get(jvnNamesFromIds.get(joi)).jvnSetSharedObject(obj);
+			   }		
 		   }
 	   }
 
@@ -144,7 +141,7 @@ public class JvnCoordImpl
 
 	   System.out.println("CoordLockRead\n");
 
-	   return object;
+	   return obj;
    }
 
   /**
@@ -156,33 +153,27 @@ public class JvnCoordImpl
   **/
    public Serializable jvnLockWrite(int joi, JvnRemoteServer js)
    throws java.rmi.RemoteException, JvnException{
-    //TODO
-    
-	   Serializable object = jvnObjectsFromNames.get(jvnNamesFromIds.get(joi)).jvnGetSharedObject();
+	   Serializable obj = jvnObjectsFromNames.get(jvnNamesFromIds.get(joi)).jvnGetSharedObject();
 
 	   if (jvnWriteServers.containsKey(joi) && jvnWriteServers.get(joi) != js) {
 		   synchronized (this) {
 			   try {
-				   System.out.println("JvnCoordImpl:jvnLockWrite jvnWriteServers containsKey joi : " + joi);
-				   object = jvnWriteServers.get(joi).jvnInvalidateWriter(joi);
-				   jvnObjectsFromNames.get(jvnNamesFromIds.get(joi)).jvnSetSharedObject(object);
+				   obj = jvnWriteServers.get(joi).jvnInvalidateWriter(joi);
+				   jvnObjectsFromNames.get(jvnNamesFromIds.get(joi)).jvnSetSharedObject(obj);
 			   } catch (ConnectException e) {
-				   System.err.println(e.getMessage());
+				   System.err.println("JvnCoordImpl : Impossile de LockWrite + " + e.getMessage());
 				   jvnWriteServers.remove(joi);
 			   }
 		   }
 	   }
 
-	   for (int i = 0; i < jvnReadServers.get(joi).size(); i++) {
-		   if (!jvnReadServers.get(joi).get(i).equals(js)) {
+	   for (int n = 0; n < jvnReadServers.get(joi).size(); n++) {
+		   if (!jvnReadServers.get(joi).get(n).equals(js)) {
 			   try {
-				   System.out.println("JvnCoordImpl:jvnLockWrite try to invalidateReader for joi : " + joi);
-				   jvnReadServers.get(joi).get(i).jvnInvalidateReader(joi);
-				   jvnReadServers.get(joi).remove(i);
-				   System.out.println("JvnCoordImpl:jvnLockWrite invalidateReader for joi : " + joi + " Ok");
-					
+				   jvnReadServers.get(joi).get(n).jvnInvalidateReader(joi);
+				   jvnReadServers.get(joi).remove(n);					
 			   } catch (ConnectException e) {
-				   jvnReadServers.get(joi).remove(i);
+				   jvnReadServers.get(joi).remove(n);
 			   }	
 		   }
 	   }
@@ -190,7 +181,7 @@ public class JvnCoordImpl
 	   jvnWriteServers.put(joi, js);
 	   System.out.println("CoordLockWrite\n");
 
-	   return object;
+	   return obj;
    }
 
 	/**
@@ -200,8 +191,6 @@ public class JvnCoordImpl
 	**/
     public void jvnTerminate(JvnRemoteServer js)
 	 throws java.rmi.RemoteException, JvnException {
-    	//TODO
-    	
     	for (int n = 0; n < jvnWriteServers.size(); n++) {
     		if (jvnWriteServers.get(n).equals(js)) {
 				jvnWriteServers.remove(n);

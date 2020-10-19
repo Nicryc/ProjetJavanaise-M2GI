@@ -214,7 +214,6 @@ public class JvnServerImpl
 	**/
   public Serializable jvnInvalidateWriter(int joi)
 	throws java.rmi.RemoteException,jvn.JvnException {
-	  
 	  JvnObject obj = jvnObjects.get(joi);
 	  if (obj == null) {
 		  throw new JvnException("JvnServerImpl : Impossible de InvalidateWriter");
@@ -231,7 +230,6 @@ public class JvnServerImpl
 	**/
    public Serializable jvnInvalidateWriterForReader(int joi)
 	 throws java.rmi.RemoteException,jvn.JvnException { 
-	   
 	   JvnObject obj = jvnObjects.get(joi);
 	   if (obj == null) {
 		   throw new JvnException("JvnServerImpl : Impossible de InvalidateWriterForReader");
